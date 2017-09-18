@@ -369,6 +369,7 @@ extension Strings {
     public static let AppMenuNightModeDisable = NSLocalizedString("Menu.NightModeTurnOff.Label", value: "Disable Night Mode", comment: "Label for the button, displayed in the menu, turns off night mode")
     public static let AppMenuNoImageModeEnable = NSLocalizedString("Menu.NoImageModeHideImages.Label", value: "Hide Images", comment: "Label for the button, displayed in the menu, hides images on the webpage when pressed.")
     public static let AppMenuNoImageModeDisable = NSLocalizedString("Menu.NoImageModeShowImages.Label", value: "Show Images", comment: "Label for the button, displayed in the menu, shows images on the webpage when pressed")
+    public static let TabTrayDeleteMenuButtonAccessibilityLabel = NSLocalizedString("Toolbar.Menu.CloseAllTabs", value: "Close All Tabs", comment: "Accessibility label for the Close All Tabs menu button.")
 }
 
 // Snackbar shown when tapping app store link
