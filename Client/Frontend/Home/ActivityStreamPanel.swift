@@ -452,6 +452,8 @@ extension ActivityStreamPanel {
     }
 }
 
+let PocketLocaleIdentifier = ["en_US", "en_GB", "en_ZA", "en_US", "en_GB", "en_ZA", "de_DE", "de_AT", "de_CH"]
+
 // MARK: - Data Management
 extension ActivityStreamPanel: DataObserverDelegate {
     fileprivate func reportMissingData(sites: [Site], source: ASPingSource) {
@@ -477,6 +479,7 @@ extension ActivityStreamPanel: DataObserverDelegate {
     // See ActivityStreamDataObserver for invalidation logic.
     func reloadAll() {
         self.getPocketSites().uponQueue(.main) { _ in
+            // TODO Do not reload if this did not return anything?
             self.collectionView?.reloadData()
         }
         accumulate([self.getHighlights, self.getTopSites]).uponQueue(.main) { _ in
@@ -503,13 +506,26 @@ extension ActivityStreamPanel: DataObserverDelegate {
         }
     }
     
+    func getPocketLocaleIdentifier() -> String? {
+        let localeIdentifier = Locale.current.identifier
+        if PocketLocaleIdentifier.contains(localeIdentifier) {
+            return localeIdentifier.replacingOccurrences(of: "_", with: "-")
+        }
+        return nil
+    }
+    
     func getPocketSites() -> Success {
-        return pocketAPI.globalFeed(items: 4).bindQueue(.main) { pStory in
+        guard let api = pocketAPI, let localeIdentifier = getPocketLocaleIdentifier() else {
+            self.pocketStories = []
+            return succeed()
+        }
+
+        return api.globalFeed(items: 4, localeIdentifier: localeIdentifier).bindQueue(.main) { pStory in
             self.pocketStories = pStory
             return succeed()
         }
     }
-
+    
     func getTopSites() -> Success {
         return self.profile.history.getTopSitesWithLimit(16).both(self.profile.history.getPinnedTopSites()).bindQueue(.main) { (topsites, pinnedSites) in
             guard let mySites = topsites.successValue?.asArray(), let pinned = pinnedSites.successValue?.asArray() else {

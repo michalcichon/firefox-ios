@@ -48,11 +48,16 @@ private class PocketError: MaybeErrorType {
 }
 
 class Pocket {
-
+    private let consumerKey: String
     private let pocketGlobalFeed: String
+    
     // Allow endPoint to be overriden for testing
-    init(endPoint: String? = nil) {
-        pocketGlobalFeed = endPoint ?? PocketGlobalFeed
+    init?(endPoint: String? = nil) {
+        guard let consumerKey = Bundle.main.object(forInfoDictionaryKey: PocketEnvAPIKey) as? String else {
+            return nil
+        }
+        self.consumerKey = consumerKey
+        self.pocketGlobalFeed = endPoint ?? PocketGlobalFeed
     }
 
     lazy fileprivate var alamofire: SessionManager = {
@@ -85,10 +90,10 @@ class Pocket {
     }
 
     // Fetch items from the global pocket feed
-    func globalFeed(items: Int = 2) -> Deferred<Array<PocketStory>> {
+    func globalFeed(items: Int = 2, localeIdentifier: String) -> Deferred<Array<PocketStory>> {
         let deferred = Deferred<Array<PocketStory>>()
 
-        guard let request = createGlobalFeedRequest(items: items) else {
+        guard let request = createGlobalFeedRequest(items: items, localeIdentifier: localeIdentifier) else {
             deferred.fill([])
             return deferred
         }
@@ -113,24 +118,17 @@ class Pocket {
     }
 
     // Create the URL request to query the Pocket API. The max items that the query can return is 20
-    private func createGlobalFeedRequest(items: Int = 2) -> URLRequest? {
+    private func createGlobalFeedRequest(items: Int = 2, localeIdentifier: String) -> URLRequest? {
         guard items > 0 && items <= 20 else {
             return nil
         }
+        
+        // locale_lang en-US
 
-        guard let feedURL = URL(string: pocketGlobalFeed)?.withQueryParam("count", value: "\(items)") else {
+        guard let feedURL = URL(string: pocketGlobalFeed)?.withQueryParam("count", value: "\(items)").withQueryParam("consumer_key", value: consumerKey).withQueryParam("locale_lang", value: localeIdentifier) else {
             return nil
         }
-        let apiURL = addAPIKey(url: feedURL)
-        return URLRequest(url: apiURL, cachePolicy: URLRequest.CachePolicy.reloadIgnoringCacheData, timeoutInterval: 5)
+        
+        return URLRequest(url: feedURL, cachePolicy: URLRequest.CachePolicy.reloadIgnoringCacheData, timeoutInterval: 5)
     }
-
-    private func addAPIKey(url: URL) -> URL {
-        let bundle = Bundle.main
-        guard let api_key = bundle.object(forInfoDictionaryKey: PocketEnvAPIKey) as? String else {
-            return url
-        }
-        return url.withQueryParam("consumer_key", value: api_key)
-    }
-
 }
