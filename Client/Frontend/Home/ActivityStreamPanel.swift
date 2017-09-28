@@ -452,6 +452,7 @@ extension ActivityStreamPanel {
     }
 }
 
+// TODO Not sure where this should go
 let PocketLocaleIdentifier = ["en_US", "en_GB", "en_ZA", "en_US", "en_GB", "en_ZA", "de_DE", "de_AT", "de_CH"]
 
 // MARK: - Data Management
@@ -506,6 +507,7 @@ extension ActivityStreamPanel: DataObserverDelegate {
         }
     }
     
+    /// Return the locale identifier to be used for requesting the Pocket feed. Or returns nil if the current locale is not supported.
     func getPocketLocaleIdentifier() -> String? {
         let localeIdentifier = Locale.current.identifier
         if PocketLocaleIdentifier.contains(localeIdentifier) {
@@ -517,7 +519,7 @@ extension ActivityStreamPanel: DataObserverDelegate {
     func getPocketSites() -> Success {
         guard let api = pocketAPI, let localeIdentifier = getPocketLocaleIdentifier() else {
             self.pocketStories = []
-            return succeed()
+            return succeed() // I think this should fail instead so we can avoid the collectionView.reload() later on?
         }
 
         return api.globalFeed(items: 4, localeIdentifier: localeIdentifier).bindQueue(.main) { pStory in

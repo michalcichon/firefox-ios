@@ -123,8 +123,6 @@ class Pocket {
             return nil
         }
         
-        // locale_lang en-US
-
         guard let feedURL = URL(string: pocketGlobalFeed)?.withQueryParam("count", value: "\(items)").withQueryParam("consumer_key", value: consumerKey).withQueryParam("locale_lang", value: localeIdentifier) else {
             return nil
         }
